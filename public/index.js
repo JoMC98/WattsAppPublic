@@ -328,6 +328,7 @@ window.app  = new Vue({
             for (var recom of j.result) {
               //PER A QUE FUNCIONE AL NO EXISTIR LA URL
               //url = recom.replace("http://our_own_schema.org", "")
+              url = recom
               fetch(url, {
                 headers:{
                   'authorization': "Bearer " + self.token

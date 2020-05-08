@@ -7,7 +7,7 @@ const Device = schema.Device;
 const Measure = schema.Measure;
 const Recommendation = schema.Recommendation;
 
-const contexts = ["http://schema.org/", {"oos": "http://our_own_schema.org"}];
+const contexts = ["http://schema.org/", {"oos": "http://54.174.138.71:8080"}];
 
 const infoMeasure = {"@context": contexts , "@type": "Measure"};
 const infoRecommendation = {"@context": contexts , "@type": "Recommendation"};
@@ -50,8 +50,8 @@ exports.addMeasure = (deviceId, data) => {
 			resolve('KO')
 
 		var measure = new Measure({
-			"@id": "http://our_own_schema.org/device/" + deviceId + "/measure/" + id,
-			"oos:device" : "http://our_own_schema.org/device/" + deviceId,
+			"@id": "http://54.174.138.71:8080/device/" + deviceId + "/measure/" + id,
+			"oos:device" : "http://54.174.138.71:8080/device/" + deviceId,
 			"identifier": id,
 			"observationDate": new Date(data.observationDate),
 			"measuredValue": data.measuredValue
@@ -75,7 +75,7 @@ exports.addRecommendation= (deviceId, data, STREAM) => {
 
 		var recommendation = new Recommendation({
 			"@id": "http://54.174.138.71:8080/device/" + deviceId + "/recommendation/" + id, 
-			"oos:device" : "http://our_own_schema.org/device/" + deviceId,
+			"oos:device" : "http://54.174.138.71:8080/device/" + deviceId,
 			"oos:owner" : data.userId,
 			"identifier": id, 
 			"dateCreated": new Date(data.dateCreated),
@@ -136,7 +136,7 @@ exports.getRecommendations = (deviceId, sDate, eDate, category, description, use
 		if (deviceId == "all") {
 			filters["oos:owner"] = userId;
 		} else {
-			filters["oos:device"] = "http://our_own_schema.org/device/" + deviceId;
+			filters["oos:device"] = "http://54.174.138.71:8080/device/" + deviceId;
 		}
 
 		if (category) {
@@ -160,7 +160,7 @@ exports.getRecommendations = (deviceId, sDate, eDate, category, description, use
 exports.getMeasures = (deviceId, sValue, eValue, sDate, eDate) => {
 	return new Promise((resolve) => {
 		if ((sValue && eValue) || (sDate && eDate)) {
-			var filters = {"oos:device" : "http://our_own_schema.org/device/" + deviceId}
+			var filters = {"oos:device" : "http://54.174.138.71:8080/device/" + deviceId}
 			
 			if (sDate != undefined && eDate != undefined) {
 				var split = sDate.split("~");
@@ -198,7 +198,7 @@ exports.deleteDevice = (deviceId) => {
 		Device.deleteOne({'identifier':deviceId})
 			.then(data => {
 				if (data.deletedCount != 0) {
-					var device = "http://our_own_schema.org/device/" + deviceId;
+					var device = "http://54.174.138.71:8080/device/" + deviceId;
 					Recommendation.deleteMany({'oos:device':device})
 						.then(() => {
 							Measure.deleteMany({'oos:device':device})

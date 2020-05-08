@@ -169,6 +169,7 @@ window.app  = new Vue({
       },
 
       deleteDevice(id) {
+        var self = this
         var url = "/device/" + id;
         fetch(url, {
           method: 'DELETE',
@@ -179,7 +180,7 @@ window.app  = new Vue({
               return r.json()
           }).then(function(j){
               console.log(j.result);
-              this.listDevices();
+              self.listDevices();
           });
       },
 

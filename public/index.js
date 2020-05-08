@@ -337,7 +337,6 @@ window.app  = new Vue({
                 .then(function(r){
                     return r.json()
                 }).then(function(j){
-                  console.log(j)
                   self.recomendations.push(j.result)
                 });
             }

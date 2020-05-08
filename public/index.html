@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+    <title>WattsApp</title>
+
+    <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet" href="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css" />
+
+    <link type="text/css" rel="stylesheet" href="./style.css">
+
+  </head>
+  <body>
+
+    <div id="app">
+      <b-container v-if="!logged" class="containerLogin">
+        <div class="containerInputsLogin">
+          <h1 style="text-align: center">Bienvenido a WattsApp</h1>
+          <div class="marginInputLogin">
+            <label>Email</label>
+            <b-form-input :type="'text'" v-model="user" class="inputLogin"></b-form-input>
+          </div>
+          <div class="marginInputLogin">
+            <label>Contraseña</label>
+            <b-form-input :type="'password'" v-model="passwd" class="inputLogin"></b-form-input>
+          </div>
+          <div class="divButtonLogin">
+            <b-button class="botonLogin" @click="login" variant="success">Login</b-button>
+          </div>
+        </div>
+      </b-container>
+      <b-container v-if="logged">
+        <b-tabs content-class="mt-3">
+          
+          <b-tab title="Panel de dispositivos" active>
+            <h1 class="title">
+              Panel de dispositivos
+              <b-button class="buttonAñadirDispositivo" variant="secondary">Añadir dispositivo</b-button>
+            </h1>
+            <div class="center titleFiltro">Filtros</div>
+            <b-container class="containerFiltroDevice">
+              <b-row>
+                <b-col>
+                  <div class="center subtitleFiltro">Estado</div>
+                  <b-form-select v-model="stateDevice" required>
+                    <b-form-select-option :value="'Cualquiera'">Cualquiera</b-form-select-option>
+                    <b-form-select-option v-for="state in states" :value="state">{{state}}</b-form-select-option>
+                  </b-form-select>
+                </b-col>
+                <b-col>
+                  <div class="center subtitleFiltro">Ubicación</div>
+                  <b-form-select v-model="locationDevice" required>
+                    <b-form-select-option :value="'Cualquiera'">Cualquiera</b-form-select-option>
+                    <b-form-select-option v-for="location in locations" :value="location">{{location}}</b-form-select-option>
+                  </b-form-select>
+                </b-col>
+                <b-col>
+                  <div class="center subtitleFiltro">Tipo</div>
+                  <b-form-select v-model="typeDevice" required>
+                    <b-form-select-option :value="'Cualquiera'">Cualquiera</b-form-select-option>
+                    <b-form-select-option v-for="type in deviceTypes" :value="type">{{type}}</b-form-select-option>
+                  </b-form-select>
+                </b-col>
+              </b-row>
+              <b-row>
+                <b-col></b-col>
+                <b-col>
+                  <b-button class="buttonFiltrarMedidas" @click="filtrarDevices" variant="info">Filtrar</b-button>
+                </b-col>
+                <b-col>
+                  <b-button class="buttonFiltrarMedidas" @click="resetFiltro" variant="warning">Limpiar filtro</b-button>
+                </b-col>
+                <b-col></b-col>
+              </b-row>
+            </b-container>
+            <div v-show="devices.length>0">
+              <b-card v-for="device in devices">
+                <b-container>
+                  <b-row>
+                    <b-col>{{device.description}}</b-col>
+                    <b-col class="colButton">
+                      <b-button class="buttonList" variant="success">Ver</b-button>
+                      <b-button class="buttonList" @click="deleteDevice(device.identifier)" variant="danger">Eliminar</b-button>
+                    </b-col>
+                  </b-row>
+                </b-container>
+
+              </b-card>
+            </div>
+            <b-alert show v-show="devices.length==0" variant="warning">De momento no hay dispositivos registrados.</b-alert>
+          </b-tab>
+
+
+          <b-tab title="Panel de monitorización">
+            <h1 class="title">Panel de monitorización</h1>
+            <div class="center titleFiltro">Filtro por fechas</div>
+            <b-container>
+              <b-row>
+                <b-col>
+                  <div class="center subtitleFiltro">Fecha inicio</div>
+                </b-col>
+                <b-col>
+                  <div class="center subtitleFiltro">Fecha fin</div>
+                </b-col>
+              </b-row>
+              <b-row>
+                <b-col>
+                  <b-form-input :type="'date'" v-model="sDate" class="mb-2" @change="cambiaSDate"></b-form-input>
+                </b-col>
+                <b-col>
+                  <b-form-input :type="'time'" v-model="sHour" @change="cambiaSHour"></b-form-input>
+                </b-col>
+                <b-col>
+                  <b-form-input :type="'date'" v-model="eDate" class="mb-2" @change="cambiaEDate"></b-form-input>
+                </b-col>
+                <b-col>
+                  <b-form-input :type="'time'" v-model="eHour" @change="cambiaEHour"></b-form-input>
+                </b-col>
+              </b-row>
+            </b-container>
+            <div class="center titleFiltro">Filtro por valor</div>
+            <b-container>
+              <b-row>
+                <b-col>
+                  <div class="center subtitleFiltro">Valor inicial</div>
+                  <b-form-input :type="'number'" v-model="sValue"></b-form-input>
+                </b-col>
+                <b-col>
+                  <div class="center subtitleFiltro">Valor final</div>
+                  <b-form-input :type="'number'" v-model="eValue"></b-form-input>
+                </b-col>
+              </b-row>
+            </b-container>
+            <div class="center titleFiltro">Filtro por electrodomésticos</div>
+            <b-container>
+              <b-row>
+                <b-col>
+                  <b-form-group>
+                    <b-form-select v-model="deviceSelectedPanelMonitorizacion" required>
+                      <b-form-select-option v-for="device in devicesSelect" :value="device.identifier">{{device.description}}</b-form-select-option>
+                    </b-form-select>
+                  </b-form-group>
+                </b-col>
+              </b-row>
+            </b-container>
+
+            <b-button class="buttonAñadir" @click="filtrarMedidas" variant="info">Filtrar</b-button>
+            
+            <b-container class="containerChart" v-show="measures.length>0">
+              <canvas id="myChart"></canvas>
+            </b-container>
+            <b-alert show v-show="measures.length == 0" variant="warning">No hay ninguna medida con esos filtros</b-alert>
+          </b-tab>
+
+
+          <b-tab title="Panel de recomendaciones">
+            <h1 class="title">Panel de recomendaciones</h1>
+            <b-container>
+              <b-row>
+                <b-col>
+                  <div class="center subtitleFiltro subtitleFiltroMargin">Fecha inicio</div>
+                </b-col>
+                <b-col>
+                  <div class="center subtitleFiltro subtitleFiltroMargin">Fecha fin</div>
+                </b-col>
+              </b-row>
+              <b-row>
+                <b-col>
+                  <b-form-datepicker id="fecha-inicio" v-model="sDateRecomendacion" class="mb-2"
+                  :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }" locale="es"></b-form-datepicker>
+                </b-col>
+                <b-col>
+                  <b-form-datepicker id="fecha-fin" v-model="eDateRecomendacion" class="mb-2" 
+                  :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }" locale="es"></b-form-datepicker>
+                </b-col>
+              </b-row>
+            </b-container>
+            <b-container>
+              <b-row>
+                <b-col>
+                  <div class="center subtitleFiltro subtitleFiltroMargin">Tipo</div>
+                </b-col>
+                <b-col>
+                  <div class="center subtitleFiltro subtitleFiltroMargin">Texto</div>
+                </b-col>
+              </b-row>
+              <b-row>
+                <b-col>
+                  <b-form-select v-model="tipoRecomendacionPanel" required>
+                    <b-form-select-option :value="'Cualquiera'">Cualquiera</b-form-select-option>
+                    <b-form-select-option v-for="type in types" :value="type">{{type}}</b-form-select-option>
+                  </b-form-select>
+                </b-col>
+                <b-col>
+                  <b-form-input :type="'search'" v-model="textoRecomendacionPanel" placeholder="Texto a buscar"></b-form-input>
+                </b-col>
+              </b-row>
+            </b-container>
+            <div class="center subtitleFiltro subtitleFiltroMargin">Electrodoméstico</div>
+            <b-container>
+              <b-row>
+                <b-col>
+                  <b-form-group>
+                    <b-form-select v-model="deviceSelectedPanelRecomendaciones" required>
+                      <b-form-select-option :value="'all'">Todos los dispositivos</b-form-select-option>
+                      <b-form-select-option v-for="device in devicesSelect" :value="device.identifier">{{device.description}}</b-form-select-option>
+                    </b-form-select>
+                  </b-form-group>
+                </b-col>
+              </b-row>
+            </b-container>
+            <b-button class="buttonRecomendaciones" @click="filtrarRecomendaciones" variant="info">Filtrar</b-button>
+            <div v-show="recomendations.length>0">
+              <b-card v-for="rec in recomendations">
+                <b-container>
+                  <b-row class="marginBottom">
+                    <b-col class="descripcionRecomendacion">
+                      {{rec.description}}
+                    </b-col>
+                  </b-row>
+                  <b-row>
+                    <b-col class="center">
+                      Recomendación de {{rec.category}}
+                    </b-col>
+                    <b-col class="center"> 
+                      {{rec.dateCreated | dateRecomendation}}
+                    </b-col>
+                    <b-col class="right">
+                      <b-button class="buttonList" variant="danger" @click="deleteRecomendacion(rec.identifier)">Eliminar</b-button>
+                    </b-col>
+                  </b-row>
+                </b-container>
+              </b-card>
+            </div>
+            <b-alert show v-show="recomendations.length == 0" variant="warning">No hay ninguna recomendación con esos filtros</b-alert>
+          </b-tab>
+
+
+
+          <b-tab title="Simulador de medidas">
+            <h1 class="title">Simulador de medidas</h1>
+            <h2 class="subtitle">Página para simular la introducción de las medidas de un dispositivo (en realidad las realiza el medidor y implementaremos un generador aleatorio)</h2>
+              <b-form-group id="groupDispositivoMedida" label="Dispositivo" label-for="inputDispositivoMedida">
+                <b-form-select id="inputDispositivoMedida" v-model="deviceSelectedMeasure" required>
+                  <b-form-select-option :value="null" disabled>Introduce el dispositivo de la recomendación</b-form-select-option>
+                  <b-form-select-option v-for="device in devicesSelect" :value="device.identifier">{{device.description}}</b-form-select-option>
+                </b-form-select>
+              </b-form-group>
+
+              <b-form-group id="groupValueMedida" label="Medida" label-for="inputValueMedida">
+                <b-form-input id="inputValueMedida" v-model="valueMeasure" required placeholder="Introduce un valor entre 100 y 500"></b-form-input>
+              </b-form-group>
+              <div class="divButtonSimulador">
+                <b-button class="buttonSimulador" type="submit" variant="primary" @click="enviarMedida">Añadir medida</b-button>
+              </div>
+          </b-tab>
+
+
+          <b-tab title="Simulador de recomendaciones">
+            <h1 class="title">Simulador de recomendaciones</h1>
+            <h2 class="subtitle">Página para simular la introducción de las recomendaciones de un dispositivo (en realidad las realiza el motor de ML y implementaremos un generador aleatorio)</h2>
+              <b-form-group id="groupDispositivoRecomendacion" label="Dispositivo" label-for="inputDispositivoRecomendacion">
+                <b-form-select id="inputDispositivoRecomendacion" v-model="deviceSelectedRecomendation" required>
+                  <b-form-select-option :value="null" disabled>Introduce el dispositivo de la recomendación</b-form-select-option>
+                  <b-form-select-option v-for="device in devicesSelect" :value="device.identifier">{{device.description}}</b-form-select-option>
+                </b-form-select>
+              </b-form-group>
+
+              <b-form-group id="groupValueRecomendacion" label="Recomendacion" label-for="inputValueRecomendacion">
+                <b-form-textarea id="inputValueRecomendacion" v-model="valueRecomendation" required placeholder="Introduce la descripción de la recomendación" rows="3" max-rows="8"></b-form-textarea>
+              </b-form-group>
+
+              <b-form-group id="groupTipoRecomendacion" label="Tipo" label-for="inputTipoRecomendacion">
+                <b-form-select id="inputTipoRecomendacion" v-model="typeSelectedRecomendation" required>
+                  <b-form-select-option :value="null" disabled>Introduce el tipo de recomendación</b-form-select-option>
+                  <b-form-select-option v-for="type in types" :value="type">{{type}}</b-form-select-option>
+                </b-form-select>
+              </b-form-group>
+
+              <div class="divButtonSimulador">
+                <b-button class="buttonSimulador" type="submit" variant="primary" @click="enviarRecomendacion">Añadir recomendación</b-button>
+              </div>
+          </b-tab>
+        </b-tabs>
+        <b-container class="recomendacionNotification" v-if="hasRecomendacion">
+          <div class="colNotificationTipo">
+            <label class="marginAutoNotificacion">Nueva recomendación de {{recomendacionNotificacion.category}}</label>
+          </div>
+          <div class="colNotificationDescripcion">
+            <label class="marginAutoNotificacion">{{recomendacionNotificacion.description}}</label>
+          </div>
+          <div class="colNotificationBoton">
+            <b-button class="marginAutoNotificacion" variant="primary" @click="cerrarRecomendacion">Cerrar</b-button>
+          </div>
+        </b-container>
+      </b-container>
+    </div>
+
+    <!-- Load polyfills to support older browsers -->
+    <script src="//polyfill.io/v3/polyfill.min.js?features=es2015%2CIntersectionObserver" crossorigin="anonymous"></script>
+
+    <!-- Load Vue followed by BootstrapVue -->
+    <script src="//unpkg.com/vue@latest/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/vue-select@latest"></script>
+    <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+
+    
+    <!-- Load the following for BootstrapVueIcons support -->
+    <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+
+    <!-- Grafico Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.js" async defer></script>
+    <script src="./index.js" async defer></script>
+
+  </body>
+</html>

@@ -179,8 +179,8 @@ window.app  = new Vue({
               return r.json()
           }).then(function(j){
               console.log(j.result);
+              this.listDevices();
           });
-        this.listDevices();
       },
 
       deleteRecomendacion(id) {

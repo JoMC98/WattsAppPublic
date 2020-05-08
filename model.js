@@ -74,7 +74,7 @@ exports.addRecommendation= (deviceId, data, STREAM) => {
 			resolve('KO')
 
 		var recommendation = new Recommendation({
-			"@id": "http://our_own_schema.org/device/" + deviceId + "/recommendation/" + id, 
+			"@id": "http://54.174.138.71:8080/device/" + deviceId + "/recommendation/" + id, 
 			"oos:device" : "http://our_own_schema.org/device/" + deviceId,
 			"oos:owner" : data.userId,
 			"identifier": id, 
